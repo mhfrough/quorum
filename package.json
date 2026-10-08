@@ -1,0 +1,15 @@
+{
+  "name": "quorum-site",
+  "private": true,
+  "author": "Mohammad Hamza (https://github.com/mhfrough)",
+  "description": "Project page for Quorum, a Claude Code skill",
+  "license": "MIT",
+  "scripts": {
+    "serve": "python -m http.server 5527",
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
