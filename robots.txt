@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mhfrough.github.io/quorum/sitemap.xml

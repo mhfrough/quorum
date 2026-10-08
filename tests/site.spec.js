@@ -546,15 +546,25 @@ test.describe('layout', () => {
     }
   });
 
-  test('videos section shows playable vertical reels with posters', async ({ page, request }) => {
+  test('videos section shows playable vertical reels with lazy WebP posters and captions', async ({ page, request }) => {
     const videos = page.locator('#reels video');
     await expect(videos).toHaveCount(2);
+    // Nothing loads up front: no video data, and posters wait until the row is near the viewport.
     for (const v of await videos.all()) {
-      // Nothing heavy downloads up front, and every poster exists.
       await expect(v).toHaveAttribute('preload', 'none');
-      expect((await request.get(await v.getAttribute('poster'))).ok()).toBeTruthy();
+      expect(await v.getAttribute('poster')).toBeNull();
     }
     await page.locator('#videos').scrollIntoViewIfNeeded();
+    for (const v of await videos.all()) {
+      await expect(v).toHaveAttribute('poster', /\.webp$/);
+      expect((await request.get(await v.getAttribute('poster'))).ok()).toBeTruthy();
+      // Every reel has English captions.
+      const track = v.locator('track[kind="captions"][srclang="en"]');
+      await expect(track).toHaveCount(1);
+      const vtt = await request.get(await track.getAttribute('src'));
+      expect(vtt.ok()).toBeTruthy();
+      expect(await vtt.text()).toMatch(/^WEBVTT/);
+    }
     await videos.first().evaluate((v) => { v.preload = 'metadata'; v.load(); });
     await expect.poll(() => videos.first().evaluate((v) => v.readyState)).toBeGreaterThanOrEqual(1);
     const ratio = await videos.first().evaluate((v) => v.videoHeight / v.videoWidth);
@@ -565,13 +575,15 @@ test.describe('layout', () => {
     // Hold the posters so the skeleton state is observable.
     let release;
     const gate = new Promise((r) => { release = r; });
-    await page.route('**/videos/*.jpg', async (route) => { await gate; await route.continue(); });
+    await page.route('**/videos/*.webp', async (route) => { await gate; await route.continue(); });
     // The held poster requests keep the load event pending, so don't wait for it.
     await page.reload({ waitUntil: 'domcontentloaded' });
     const reel = page.locator('#reels .reel').first();
     await expect(reel).toHaveAttribute('aria-busy', 'true');
     await expect(reel).not.toHaveClass(/is-ready/);
     expect(await reel.locator('video').evaluate((v) => getComputedStyle(v).opacity)).toBe('0');
+    await page.locator('#videos').scrollIntoViewIfNeeded();
+    await expect(reel).not.toHaveClass(/is-ready/);
     release();
     await expect(page.locator('#reels .reel.is-ready')).toHaveCount(2);
     await expect(reel).not.toHaveAttribute('aria-busy', 'true');
@@ -630,6 +642,80 @@ test.describe('layout', () => {
     const op = await p.locator('#seven-grid .s-cell').first().evaluate((el) => getComputedStyle(el).opacity);
     expect(op).toBe('1');
     await ctx.close();
+  });
+});
+
+test.describe('seo and lighthouse', () => {
+  test('has canonical, Open Graph and Twitter tags pointing at a real share image', async ({ page, request }) => {
+    const meta = (sel) => page.locator(sel).first().getAttribute('content');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://mhfrough.github.io/quorum/');
+    expect(await meta('meta[name="description"]')).toMatch(/Claude Code skill/);
+    for (const p of ['og:type', 'og:url', 'og:title', 'og:description', 'og:image', 'og:image:alt']) {
+      expect(await meta(`meta[property="${p}"]`), p).toBeTruthy();
+    }
+    expect(await meta('meta[name="twitter:card"]')).toBe('summary_large_image');
+    // The image the tags point at ships in the repo.
+    const img = (await meta('meta[property="og:image"]')).replace('https://mhfrough.github.io/quorum/', '/');
+    const res = await request.get(img);
+    expect(res.ok()).toBeTruthy();
+    expect(res.headers()['content-type']).toMatch(/image\/jpeg/);
+  });
+
+  test('has valid schema.org JSON-LD for the app, author, site and videos', async ({ page }) => {
+    const data = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+    const types = data['@graph'].map((n) => n['@type']);
+    expect(types).toEqual(expect.arrayContaining(['SoftwareApplication', 'Person', 'WebSite', 'VideoObject']));
+    const app = data['@graph'].find((n) => n['@type'] === 'SoftwareApplication');
+    expect(app.name).toBe('Quorum');
+    expect(app.codeRepository).toBe('https://github.com/mhfrough/quorum');
+  });
+
+  test('robots.txt and sitemap.xml are served', async ({ request }) => {
+    expect(await (await request.get('/robots.txt')).text()).toContain('Sitemap: https://mhfrough.github.io/quorum/sitemap.xml');
+    expect(await (await request.get('/sitemap.xml')).text()).toContain('<loc>https://mhfrough.github.io/quorum/</loc>');
+  });
+
+  test('every font sets font-display (no invisible text while fonts load)', async ({ page }) => {
+    const faces = await page.evaluate(() => [...document.fonts].map((f) => [f.family, f.display]));
+    expect(faces.length).toBeGreaterThan(0);
+    for (const [family, display] of faces) expect([family, display]).toEqual([family, 'swap']);
+  });
+
+  test('footer disclaimer text has at least 4.5:1 contrast in both themes', async ({ page }) => {
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+      const ratio = await page.locator('.disclaimer').evaluate((el) => {
+        const lum = (c) => {
+          const [r, g, b] = c.match(/[\d.]+/g).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const fg = lum(getComputedStyle(el).color), bg = lum(getComputedStyle(document.body).backgroundColor);
+        return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+      });
+      expect(ratio, theme).toBeGreaterThanOrEqual(4.5);
+      expect(await page.locator('.disclaimer').evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+    }
+  });
+
+  test('looping shimmers and the marquee pause while off screen', async ({ page }) => {
+    const states = () => page.evaluate(() => document.getAnimations()
+      .filter((a) => a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('#reels'))
+      .map((a) => a.playState));
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(states).toEqual(expect.arrayContaining(['paused']));
+    expect(await states()).not.toContain('running');
+    await page.locator('#reels').scrollIntoViewIfNeeded();
+    await expect(page.locator('#reels')).toHaveClass(/in-view/);
+  });
+
+  test('raster images on the page are WebP (social share image excepted)', async ({ page }) => {
+    await page.locator('#videos').scrollIntoViewIfNeeded();
+    await expect(page.locator('#reels video[poster]')).toHaveCount(2);
+    const srcs = await page.evaluate(() => [
+      ...[...document.images].map((i) => i.currentSrc || i.src),
+      ...[...document.querySelectorAll('video[poster]')].map((v) => v.poster),
+    ]);
+    for (const s of srcs) expect(s).toMatch(/\.(webp|svg)(\?|$)/);
   });
 });
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://mhfrough.github.io/quorum/</loc>
+    <lastmod>2026-10-08</lastmod>
+    <video:video>
+      <video:thumbnail_loc>https://mhfrough.github.io/quorum/videos/quorum-reel.webp</video:thumbnail_loc>
+      <video:title>Meet the Quorum</video:title>
+      <video:description>Seven minds, one decision: a 23-second intro to the Quorum skill for Claude Code.</video:description>
+      <video:content_loc>https://mhfrough.github.io/quorum/videos/quorum-reel.mp4</video:content_loc>
+      <video:duration>23</video:duration>
+    </video:video>
+    <video:video>
+      <video:thumbnail_loc>https://mhfrough.github.io/quorum/videos/quorum-board-reel.webp</video:thumbnail_loc>
+      <video:title>The board</video:title>
+      <video:description>The seven council members on a 3D board: ask them anything, and keep poking to see who snaps first.</video:description>
+      <video:content_loc>https://mhfrough.github.io/quorum/videos/quorum-board-reel.mp4</video:content_loc>
+      <video:duration>26</video:duration>
+    </video:video>
+  </url>
+</urlset>

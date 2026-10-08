@@ -5,14 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quorum | A council of seven minds for Claude Code</title>
 <meta name="description" content="Quorum is a Claude Code skill for hard decisions. Seven personality agents argue it out, vote up or down, and hand you one verdict.">
-<meta property="og:title" content="Quorum">
 <meta name="author" content="Mohammad Hamza">
-<meta property="og:description" content="One decision. Seven minds. A Claude Code skill.">
+<meta name="keywords" content="Claude Code, Claude Code skill, AI decision making, multi-agent, sub-agents, AI council, devil's advocate, pre-mortem, Anthropic Claude">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://mhfrough.github.io/quorum/">
 <meta name="theme-color" content="#121110">
+<meta name="color-scheme" content="dark light">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<!-- Social cards. The share image stays JPG on purpose: not every social crawler renders WebP. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Quorum">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://mhfrough.github.io/quorum/">
+<meta property="og:title" content="Quorum: one decision, seven minds">
+<meta property="og:description" content="A Claude Code skill for hard decisions. Seven personality agents argue it out, vote, and hand you one verdict.">
+<meta property="og:image" content="https://mhfrough.github.io/quorum/assets/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Quorum: One decision. Seven minds. A skill for Claude Code.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Quorum: one decision, seven minds">
+<meta name="twitter:description" content="A Claude Code skill for hard decisions. Seven personality agents argue it out, vote, and hand you one verdict.">
+<meta name="twitter:image" content="https://mhfrough.github.io/quorum/assets/og-image.jpg">
+<meta name="twitter:image:alt" content="Quorum: One decision. Seven minds. A skill for Claude Code.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://mhfrough.github.io/quorum/#app",
+      "name": "Quorum",
+      "alternateName": "/quorum",
+      "description": "A Claude Code skill for hard decisions. Seven personality sub-agents debate a decision, vote up or down, and return a clear YES or NO with next steps.",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Claude Code skill",
+      "operatingSystem": "macOS, Linux, Windows",
+      "url": "https://mhfrough.github.io/quorum/",
+      "downloadUrl": "https://github.com/mhfrough/quorum",
+      "installUrl": "https://mhfrough.github.io/quorum/#install",
+      "codeRepository": "https://github.com/mhfrough/quorum",
+      "image": "https://mhfrough.github.io/quorum/assets/og-image.jpg",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@id": "https://mhfrough.github.io/quorum/#author" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://mhfrough.github.io/quorum/#author",
+      "name": "Mohammad Hamza",
+      "url": "https://github.com/mhfrough",
+      "sameAs": ["https://github.com/mhfrough"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://mhfrough.github.io/quorum/#website",
+      "name": "Quorum",
+      "url": "https://mhfrough.github.io/quorum/",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://mhfrough.github.io/quorum/#author" }
+    },
+    {
+      "@type": "VideoObject",
+      "name": "Meet the Quorum",
+      "description": "Seven minds, one decision: a 23-second intro to the Quorum skill for Claude Code.",
+      "thumbnailUrl": "https://mhfrough.github.io/quorum/videos/quorum-reel.webp",
+      "contentUrl": "https://mhfrough.github.io/quorum/videos/quorum-reel.mp4",
+      "uploadDate": "2026-10-08T12:00:00+05:00",
+      "duration": "PT23S"
+    },
+    {
+      "@type": "VideoObject",
+      "name": "The board",
+      "description": "The seven council members on a 3D board: ask them anything, and keep poking to see who snaps first.",
+      "thumbnailUrl": "https://mhfrough.github.io/quorum/videos/quorum-board-reel.webp",
+      "contentUrl": "https://mhfrough.github.io/quorum/videos/quorum-board-reel.mp4",
+      "uploadDate": "2026-10-08T12:00:00+05:00",
+      "duration": "PT26S"
+    }
+  ]
+}
+</script>
 <!-- Everything is self-hosted under assets/ (no CDNs). Fonts and icons load without blocking first paint. -->
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/Geist-Variable.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="assets/fonts/GeistMono-Variable.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/vendor/phosphor/regular/Phosphor.woff2" crossorigin>
 <link rel="preload" as="style" href="assets/vendor/phosphor/regular/style.css" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="assets/vendor/phosphor/regular/style.css"></noscript>
 <style>
@@ -487,6 +566,9 @@ p.sub{color:var(--ink-2);font-size:1.075rem;max-width:56ch;margin:0}
 .reel.is-ready .reel-media::before{display:none}
 @media (prefers-reduced-motion: no-preference){.reel-media::before{animation:reel-sheen 1.5s ease-in-out infinite}}
 @keyframes reel-sheen{to{transform:translateX(100%)}}
+/* Looping animations only run while their section is on screen (.in-view is toggled by an observer) */
+.sk-sheen,.reel-media::before,.track{animation-play-state:paused}
+.stage.in-view .sk-sheen,.reels.in-view .reel-media::before,.ask.in-view .track{animation-play-state:running}
 .reel-spin{position:absolute;left:50%;top:50%;z-index:2;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;opacity:0;pointer-events:none;transition:opacity .2s}
 .reel.is-buffering .reel-spin{opacity:1}
 @media (prefers-reduced-motion: no-preference){.reel.is-buffering .reel-spin{animation:reel-spin .8s linear infinite}}
@@ -532,7 +614,7 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
 .foot p{margin:6px 0 0;font-size:14px;color:var(--muted)}
 .foot-links{display:flex;gap:10px}
 .foot .author{color:var(--ink);font-weight:500}
-.foot .disclaimer{margin:10px 0 0;font-size:12px;line-height:1.5;max-width:64ch;opacity:.6}
+.foot .disclaimer{margin:10px 0 0;font-size:12px;line-height:1.5;max-width:64ch}
 .stars{display:inline-flex;align-items:center;gap:4px;margin-left:2px;padding-left:10px;border-left:1px solid color-mix(in oklab,currentColor 25%,transparent);font-family:"Geist Mono",monospace;font-size:13px}
 .stars[hidden]{display:none}
 
@@ -780,7 +862,7 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
         <h2 class="title" id="videos-title">Watch the council at work</h2>
         <p class="sub">Short reels of the seven arguing, voting and landing on an answer. Turn the sound on.</p>
       </div>
-      <div class="reels" id="reels" role="list"></div>
+      <div class="reels" id="reels"></div>
     </div>
   </section>
 
@@ -1027,22 +1109,30 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
   });
 
   /* Videos. Swap this list to change which reels show. */
-  /* Each reel has a poster JPG of the same name in videos/, so nothing big downloads until play */
+  /* Each reel in videos/ has a .webp poster and .en.vtt captions of the same name. Nothing big downloads
+     until play, and posters only load once the row is about to scroll into view. */
   var VIDEOS = [
     {src:'videos/quorum-reel', t:'Meet the Quorum', d:'0:23'},
     {src:'videos/quorum-board-reel', t:'The board', d:'0:26'}
   ];
   var reelsEl = document.getElementById('reels');
   VIDEOS.forEach(function(v, i){
-    var f = el('figure',{'class':'reel',role:'listitem','data-reveal':'','aria-busy':'true'},
-      '<div class="reel-media"><video controls playsinline preload="none" poster="'+esc(v.src)+'.jpg" src="'+esc(v.src)+'.mp4"></video><span class="reel-spin" aria-hidden="true"></span></div>'+
+    var f = el('figure',{'class':'reel','data-reveal':'','aria-busy':'true'},
+      '<div class="reel-media"><video controls playsinline preload="none" src="'+esc(v.src)+'.mp4">'+
+        '<track kind="captions" srclang="en" label="English" src="'+esc(v.src)+'.en.vtt"></video>'+
+        '<span class="reel-spin" aria-hidden="true"></span></div>'+
       '<figcaption>'+esc(v.t)+'<span>'+esc(v.d)+'</span></figcaption>');
     var vid = f.querySelector('video');
     vid.setAttribute('aria-label', v.t);
     f.style.setProperty('--i', i);
     /* Skeleton stays until the poster (or the first frame, if played first) is ready; a failed poster still reveals the player */
     function ready(){ f.classList.add('is-ready'); f.removeAttribute('aria-busy') }
-    var img = new Image(); img.onload = img.onerror = ready; img.src = v.src + '.jpg';
+    f._loadPoster = function(){
+      var img = new Image();
+      img.onload = function(){ vid.poster = img.src; ready() };
+      img.onerror = ready;
+      img.src = v.src + '.webp';
+    };
     vid.addEventListener('loadeddata', ready);
     function buffering(on){ f.classList.toggle('is-buffering', on) }
     vid.addEventListener('play', function(){ if(vid.readyState < 3) buffering(true) });
@@ -1050,6 +1140,14 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
     ['playing','canplay','pause','ended','error'].forEach(function(ev){ vid.addEventListener(ev, function(){ buffering(false) }) });
     reelsEl.appendChild(f);
   });
+  /* Lazy posters: fetch them when the row is within ~1.5 screens */
+  function loadPosters(){ reelsEl.querySelectorAll('.reel').forEach(function(f){ if(f._loadPoster){ f._loadPoster(); f._loadPoster = null } }) }
+  if('IntersectionObserver' in window){
+    var posterIO = new IntersectionObserver(function(en){
+      if(en.some(function(e){ return e.isIntersecting })){ loadPosters(); posterIO.disconnect() }
+    },{rootMargin:'150% 0px'});
+    posterIO.observe(reelsEl);
+  } else loadPosters();
   /* One reel plays at a time */
   reelsEl.addEventListener('play', function(e){
     reelsEl.querySelectorAll('video').forEach(function(x){ if(x !== e.target) x.pause() });
@@ -1133,6 +1231,12 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
     },{rootMargin:'-40% 0px -59% 0px'});
     spyLinks.forEach(function(a){ var s = document.querySelector(a.getAttribute('href')); if(s) spy.observe(s) });
   }
+
+  /* Pause off-screen loops: the shimmers and the marquee only animate while visible */
+  if('IntersectionObserver' in window){
+    var loopIO = new IntersectionObserver(function(en){ en.forEach(function(e){ e.target.classList.toggle('in-view', e.isIntersecting) }) });
+    ['#stage','#reels','.ask'].forEach(function(sel){ var n = document.querySelector(sel); if(n) loopIO.observe(n) });
+  } else ['#stage','#reels','.ask'].forEach(function(sel){ var n = document.querySelector(sel); if(n) n.classList.add('in-view') });
 
   /* Entry + scroll reveal */
   function ready(){ document.getElementById('hero').classList.add('ready') }
