@@ -529,7 +529,7 @@ test.describe('layout', () => {
       lh: parseFloat(getComputedStyle(el).lineHeight),
     }));
     expect(Math.round(height / lh)).toBeLessThanOrEqual(2);
-    const ctaBottom = await page.locator('.hero .cmd').last().evaluate((el) => el.getBoundingClientRect().bottom);
+    const ctaBottom = await page.locator('.hero .cmd').evaluate((el) => el.getBoundingClientRect().bottom);
     expect(ctaBottom).toBeLessThan(800);
   });
 
@@ -642,7 +642,7 @@ test.describe('branding', () => {
   test('page is branded Quorum with the /quorum command', async ({ page }) => {
     await expect(page).toHaveTitle(/^Quorum/);
     await expect(page.locator('.nav .brand')).toContainText('Quorum');
-    await expect(page.locator('#hero-cmd')).toHaveText(/^\/quorum /);
+    await expect(page.locator('#builder-cmd')).toHaveText(/^\/quorum /);
     await expect(page.locator('#pre-unix')).toContainText('https://github.com/mhfrough/quorum.git');
     const text = await page.locator('body').innerText();
     expect(text).not.toMatch(/personality-agents|YOUR-USERNAME/);

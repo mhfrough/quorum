@@ -182,8 +182,7 @@ h1 .soft{color:var(--muted)}
 }
 .cmd span.prompt{opacity:.5}
 .cmd code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* Hero install line (OS-detected) sits above the /quorum line; tighter so the long URL fits the column */
-.cmd+.cmd{margin-top:10px}
+/* Hero install line (OS-detected); tighter so the long URL fits the column */
 .cmd-install{font-size:12.5px;gap:8px;padding-left:16px}
 .copy-icon{width:36px;padding:0;justify-content:center}
 .copy-icon i{font-size:16px}
@@ -592,11 +591,6 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
           <span class="prompt" id="hero-install-prompt" aria-hidden="true">$</span>
           <code id="hero-install-cmd">curl -fsSL https://mhfrough.github.io/quorum/install.sh | sh</code>
           <button class="copy copy-icon" type="button" data-copy="#hero-install-cmd" aria-label="Copy install command"><i class="ph ph-copy idle" aria-hidden="true"></i><i class="ph ph-check done" aria-hidden="true"></i></button>
-        </div>
-        <div class="cmd rise d2">
-          <span class="prompt">&gt;</span>
-          <code id="hero-cmd">/quorum "Should I take the offer?"</code>
-          <button class="copy" type="button" data-copy="#hero-cmd"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
         </div>
       </div>
 
