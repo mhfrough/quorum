@@ -176,12 +176,17 @@ h1 .line>span{display:inline-block}
 h1 .soft{color:var(--muted)}
 .lede{font-size:clamp(1.05rem,1.4vw,1.2rem);color:var(--ink-2);max-width:34ch;margin:0 0 32px}
 .cmd{
-  display:flex;align-items:center;gap:12px;max-width:520px;
+  display:flex;align-items:center;gap:12px;max-width:544px;
   background:var(--solid);color:var(--solid-ink);border:1px solid var(--solid-edge);border-radius:999px;padding:6px 6px 6px 22px;
   font-family:"Geist Mono",monospace;font-size:14px;
 }
 .cmd span.prompt{opacity:.5}
 .cmd code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Hero install line (OS-detected) sits above the /quorum line; tighter so the long URL fits the column */
+.cmd+.cmd{margin-top:10px}
+.cmd-install{font-size:12.5px;gap:8px;padding-left:16px}
+.copy-icon{width:36px;padding:0;justify-content:center}
+.copy-icon i{font-size:16px}
 .copy{
   display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:999px;
   font-family:"Geist",sans-serif;font-size:14px;font-weight:500;flex-shrink:0;
@@ -583,6 +588,11 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
         <a class="pill-link rise" href="#council"><b>7 agents</b>A skill for Claude Code<i class="ph ph-arrow-right"></i></a>
         <h1><span class="line"><span>One decision.</span></span><span class="line"><span class="soft">Seven minds.</span></span></h1>
         <p class="lede">A Claude Code skill for hard decisions. Seven personality agents argue it out, vote, and hand you one verdict.</p>
+        <div class="cmd cmd-install rise d2" id="hero-install">
+          <span class="prompt" id="hero-install-prompt" aria-hidden="true">$</span>
+          <code id="hero-install-cmd">curl -fsSL https://mhfrough.github.io/quorum/install.sh | sh</code>
+          <button class="copy copy-icon" type="button" data-copy="#hero-install-cmd" aria-label="Copy install command"><i class="ph ph-copy idle" aria-hidden="true"></i><i class="ph ph-check done" aria-hidden="true"></i></button>
+        </div>
         <div class="cmd rise d2">
           <span class="prompt">&gt;</span>
           <code id="hero-cmd">/quorum "Should I take the offer?"</code>
@@ -883,8 +893,14 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
   /* One-line installers live in the repo root, so GitHub Pages serves them next to this page */
   var owner = repo.replace('https://github.com/','').split('/')[0].toLowerCase();
   var pages = 'https://' + owner + '.github.io/' + repoName + '/';
-  document.getElementById('quick-unix').textContent = 'curl -fsSL ' + pages + 'install.sh | sh';
-  document.getElementById('quick-win').textContent = 'irm ' + pages + 'install.ps1 | iex';
+  var installUnix = 'curl -fsSL ' + pages + 'install.sh | sh', installWin = 'irm ' + pages + 'install.ps1 | iex';
+  document.getElementById('quick-unix').textContent = installUnix;
+  document.getElementById('quick-win').textContent = installWin;
+  /* Visitor's OS (macOS / Linux is the default); picks the hero install line and the install tab */
+  var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '';
+  var isWin = /\bwin/i.test(plat);
+  document.getElementById('hero-install-cmd').textContent = isWin ? installWin : installUnix;
+  document.getElementById('hero-install-prompt').textContent = isWin ? 'PS>' : '$';
   document.getElementById('pre-unix').textContent =
     'git clone ' + repo + '.git\n' +
     'mkdir -p ~/.claude/skills\n' +
@@ -1056,9 +1072,8 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
       });
     });
   });
-  /* Open the tab for the visitor's OS (macOS / Linux is the default) */
-  var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '';
-  if(/\bwin/i.test(plat)) document.getElementById('tab-win').click();
+  /* Open the tab for the visitor's OS */
+  if(isWin) document.getElementById('tab-win').click();
 
   /* Copy buttons */
   function copyText(text){

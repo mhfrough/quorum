@@ -471,6 +471,11 @@ test.describe('interactions', () => {
       await page.reload();
       await expect(page.locator(`#tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
       await expect(page.locator(`#code-${tab}`)).toBeVisible();
+      // The hero shows only this OS's one-liner, matching the install tab.
+      await expect(page.locator('#hero-install-cmd')).toHaveText(await page.locator(`#quick-${tab}`).textContent());
+      await expect(page.locator('#hero-install-prompt')).toHaveText(tab === 'win' ? 'PS>' : '$');
+      const box = await page.locator('#hero-install-cmd').evaluate((el) => ({ clipped: el.scrollWidth > el.clientWidth }));
+      if (!test.info().project.name.includes('mobile')) expect(box.clipped, 'install line fits without an ellipsis on desktop').toBe(false);
     });
   }
 
@@ -524,7 +529,7 @@ test.describe('layout', () => {
       lh: parseFloat(getComputedStyle(el).lineHeight),
     }));
     expect(Math.round(height / lh)).toBeLessThanOrEqual(2);
-    const ctaBottom = await page.locator('.hero .cmd').evaluate((el) => el.getBoundingClientRect().bottom);
+    const ctaBottom = await page.locator('.hero .cmd').last().evaluate((el) => el.getBoundingClientRect().bottom);
     expect(ctaBottom).toBeLessThan(800);
   });
 
