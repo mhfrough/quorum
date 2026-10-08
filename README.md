@@ -37,6 +37,23 @@ A score above 0 is YES, below 0 is NO, and 0 is a TIE that's broken toward the m
 
 ## Install
 
+One line. Run it again any time to update.
+
+macOS / Linux:
+
+```bash
+curl -fsSL https://mhfrough.github.io/quorum/install.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://mhfrough.github.io/quorum/install.ps1 | iex
+```
+
+<details>
+<summary>Or install by hand</summary>
+
 macOS / Linux:
 
 ```bash
@@ -52,6 +69,8 @@ git clone https://github.com/mhfrough/quorum.git
 New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
 Copy-Item -Recurse quorum\skills\quorum "$HOME\.claude\skills\"
 ```
+
+</details>
 
 Restart Claude Code, then run:
 

@@ -503,6 +503,16 @@ p.sub{color:var(--ink-2);font-size:1.075rem;max-width:56ch;margin:0}
 .code pre{margin:0;overflow-x:auto;font-family:"Geist Mono",monospace;font-size:13.5px;line-height:1.75;padding-right:88px}
 .code .copy{position:absolute;top:12px;right:12px}
 .code[hidden]{display:none}
+/* Long one-liners wrap (at any character, they are URLs) instead of scrolling under the Copy button */
+.code pre.wrap-line{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+/* One-liner on top; the manual steps fold away under it */
+.manual{margin-top:10px}
+.manual summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;font-size:14px;color:var(--muted);padding:4px 0}
+.manual summary::-webkit-details-marker{display:none}
+.manual summary::before{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .2s var(--ease)}
+.manual[open] summary::before{transform:rotate(45deg)}
+.manual summary:hover{color:var(--ink)}
+.manual .code{margin-top:8px}
 .after{margin:18px 0 0;color:var(--ink-2);font-size:15px;display:flex;gap:10px;align-items:flex-start}
 .after i{color:var(--accent);font-size:20px;flex-shrink:0;margin-top:1px}
 .flags{display:grid}
@@ -774,7 +784,7 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
     <div class="wrap">
       <div data-reveal>
         <h2 class="title">Install in a minute</h2>
-        <p class="sub">It's plain Markdown. Copy the folder into your Claude Code skills directory and it's ready.</p>
+        <p class="sub">It's plain Markdown. One line drops it into your Claude Code skills folder, and running it again updates it.</p>
       </div>
       <div class="install">
         <div class="panel" data-reveal>
@@ -782,13 +792,31 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
             <button role="tab" aria-selected="true" aria-controls="code-unix" id="tab-unix" type="button">macOS / Linux</button>
             <button role="tab" aria-selected="false" aria-controls="code-win" id="tab-win" type="button">Windows</button>
           </div>
-          <div class="code" id="code-unix" role="tabpanel" aria-labelledby="tab-unix">
-            <pre id="pre-unix"></pre>
-            <button class="copy" type="button" data-copy="#pre-unix"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+          <div id="code-unix" role="tabpanel" aria-labelledby="tab-unix">
+            <div class="code">
+              <pre id="quick-unix" class="wrap-line"></pre>
+              <button class="copy" type="button" data-copy="#quick-unix"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+            </div>
+            <details class="manual">
+              <summary>Or install by hand</summary>
+              <div class="code">
+                <pre id="pre-unix"></pre>
+                <button class="copy" type="button" data-copy="#pre-unix"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+              </div>
+            </details>
           </div>
-          <div class="code" id="code-win" role="tabpanel" aria-labelledby="tab-win" hidden>
-            <pre id="pre-win"></pre>
-            <button class="copy" type="button" data-copy="#pre-win"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+          <div id="code-win" role="tabpanel" aria-labelledby="tab-win" hidden>
+            <div class="code">
+              <pre id="quick-win" class="wrap-line"></pre>
+              <button class="copy" type="button" data-copy="#quick-win"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+            </div>
+            <details class="manual">
+              <summary>Or install by hand</summary>
+              <div class="code">
+                <pre id="pre-win"></pre>
+                <button class="copy" type="button" data-copy="#pre-win"><i class="ph ph-copy"></i><span class="idle">Copy</span><span class="done">Copied</span></button>
+              </div>
+            </details>
           </div>
           <p class="after"><i class="ph ph-arrow-clockwise"></i><span>Restart Claude Code, then type <code>/quorum</code> followed by your question. It only runs when you call it.</span></p>
         </div>
@@ -852,6 +880,11 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
       }).catch(function(){});
   }catch(e){}
 
+  /* One-line installers live in the repo root, so GitHub Pages serves them next to this page */
+  var owner = repo.replace('https://github.com/','').split('/')[0].toLowerCase();
+  var pages = 'https://' + owner + '.github.io/' + repoName + '/';
+  document.getElementById('quick-unix').textContent = 'curl -fsSL ' + pages + 'install.sh | sh';
+  document.getElementById('quick-win').textContent = 'irm ' + pages + 'install.ps1 | iex';
   document.getElementById('pre-unix').textContent =
     'git clone ' + repo + '.git\n' +
     'mkdir -p ~/.claude/skills\n' +
@@ -1023,7 +1056,9 @@ footer{padding:56px 0 48px;border-top:1px solid var(--line)}
       });
     });
   });
-  if(/Win/i.test(navigator.platform || navigator.userAgent)) document.getElementById('tab-win').click();
+  /* Open the tab for the visitor's OS (macOS / Linux is the default) */
+  var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '';
+  if(/\bwin/i.test(plat)) document.getElementById('tab-win').click();
 
   /* Copy buttons */
   function copyText(text){

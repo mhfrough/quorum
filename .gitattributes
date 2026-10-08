@@ -1,0 +1,2 @@
+# The install script is piped into sh, which breaks on Windows line endings
+*.sh text eol=lf

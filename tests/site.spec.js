@@ -447,6 +447,33 @@ test.describe('interactions', () => {
     await expect(page.locator('#pre-win')).toContainText('Copy-Item -Recurse');
   });
 
+  test('install shows a one-liner on top, with the manual steps folded underneath', async ({ page }) => {
+    await page.locator('#tab-unix').click();
+    await expect(page.locator('#quick-unix')).toHaveText('curl -fsSL https://mhfrough.github.io/quorum/install.sh | sh');
+    await expect(page.locator('#pre-unix')).toBeHidden();
+    await page.locator('#code-unix .manual summary').click();
+    await expect(page.locator('#pre-unix')).toBeVisible();
+    await page.locator('#tab-win').click();
+    await expect(page.locator('#quick-win')).toHaveText('irm https://mhfrough.github.io/quorum/install.ps1 | iex');
+  });
+
+  for (const [os, platform, ua, tab] of [
+    ['Windows', 'Windows', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'win'],
+    ['macOS', 'macOS', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'unix'],
+    ['Linux', 'Linux', 'Mozilla/5.0 (X11; Linux x86_64)', 'unix'],
+  ]) {
+    test(`install opens the ${os} tab for ${os} visitors`, async ({ page }) => {
+      await page.addInitScript(([p, u]) => {
+        Object.defineProperty(navigator, 'userAgentData', { get: () => ({ platform: p }) });
+        Object.defineProperty(navigator, 'platform', { get: () => p });
+        Object.defineProperty(navigator, 'userAgent', { get: () => u });
+      }, [platform, ua]);
+      await page.reload();
+      await expect(page.locator(`#tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
+      await expect(page.locator(`#code-${tab}`)).toBeVisible();
+    });
+  }
+
   test('glass nav floats and deepens its shadow after scrolling', async ({ page }) => {
     const nav = page.locator('.nav');
     const filter = await page.locator('.nav-inner').evaluate((n) => getComputedStyle(n).backdropFilter);
