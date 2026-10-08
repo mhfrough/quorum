@@ -601,22 +601,16 @@ test.describe('layout', () => {
     await expect(page.locator('#reels .reel').first().locator('figcaption')).toContainText('The board');
   });
 
-  test('reels show the skeleton (not a spinner) while the first play buffers', async ({ page }) => {
+  test('buffering on play leaves the loader to the browser: no spinner or shimmer of our own', async ({ page }) => {
     const reel = page.locator('#reels .reel').first();
     const vid = reel.locator('video');
     await page.locator('#videos').scrollIntoViewIfNeeded();
     await expect(reel).toHaveClass(/is-ready/);
     await expect(page.locator('.reel-spin')).toHaveCount(0);
-    await vid.evaluate((v) => v.dispatchEvent(new Event('waiting')));
-    await expect(reel).toHaveClass(/is-buffering/);
-    await expect(reel).toHaveAttribute('aria-busy', 'true');
-    await expect.poll(() => vid.evaluate((v) => getComputedStyle(v).opacity)).toBe('0');
-    await vid.evaluate((v) => v.dispatchEvent(new Event('playing')));
-    await expect(reel).not.toHaveClass(/is-buffering/);
+    await vid.evaluate((v) => { v.dispatchEvent(new Event('play')); v.dispatchEvent(new Event('waiting')); });
     await expect(reel).not.toHaveAttribute('aria-busy', 'true');
-    // Once frames have played, later stalls keep the frame visible.
-    await vid.evaluate((v) => v.dispatchEvent(new Event('waiting')));
-    await expect(reel).not.toHaveClass(/is-buffering/);
+    expect(await vid.evaluate((v) => getComputedStyle(v).opacity)).toBe('1');
+    expect(await reel.locator('.reel-media').evaluate((m) => getComputedStyle(m, '::before').display)).toBe('none');
   });
 
   test('desktop nav fits on one line', async ({ page, isMobile }) => {
