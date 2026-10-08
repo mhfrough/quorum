@@ -597,11 +597,25 @@ test.describe('layout', () => {
     else expect(row.ox).toBe('visible');
   });
 
-  test('reels show a spinner while playback buffers', async ({ page }) => {
+  test('board reel comes first', async ({ page }) => {
+    await expect(page.locator('#reels .reel').first().locator('figcaption')).toContainText('The board');
+  });
+
+  test('reels show the skeleton (not a spinner) while the first play buffers', async ({ page }) => {
     const reel = page.locator('#reels .reel').first();
-    await reel.locator('video').evaluate((v) => v.dispatchEvent(new Event('waiting')));
+    const vid = reel.locator('video');
+    await page.locator('#videos').scrollIntoViewIfNeeded();
+    await expect(reel).toHaveClass(/is-ready/);
+    await expect(page.locator('.reel-spin')).toHaveCount(0);
+    await vid.evaluate((v) => v.dispatchEvent(new Event('waiting')));
     await expect(reel).toHaveClass(/is-buffering/);
-    await reel.locator('video').evaluate((v) => v.dispatchEvent(new Event('playing')));
+    await expect(reel).toHaveAttribute('aria-busy', 'true');
+    await expect.poll(() => vid.evaluate((v) => getComputedStyle(v).opacity)).toBe('0');
+    await vid.evaluate((v) => v.dispatchEvent(new Event('playing')));
+    await expect(reel).not.toHaveClass(/is-buffering/);
+    await expect(reel).not.toHaveAttribute('aria-busy', 'true');
+    // Once frames have played, later stalls keep the frame visible.
+    await vid.evaluate((v) => v.dispatchEvent(new Event('waiting')));
     await expect(reel).not.toHaveClass(/is-buffering/);
   });
 
@@ -745,6 +759,30 @@ test.describe('branding', () => {
     const count = page.locator('.nav .star-btn .stars');
     await expect(count).toBeVisible();
     await expect(count).toContainText('1.2k');
+  });
+
+  test('star count shows 0 before the API answers, then rolls up', async ({ page }) => {
+    let release;
+    const gate = new Promise((r) => { release = r; });
+    await page.unroute('https://api.github.com/**');
+    await page.route('https://api.github.com/**', async (route) => { await gate; await route.fulfill({ json: { stargazers_count: 1234 } }); });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    const n = page.locator('.nav .star-btn .stars-n');
+    await expect(n).toBeVisible();
+    await expect(n).toHaveText('0');
+    release();
+    await expect(n).toHaveText('1.2k');
+  });
+
+  test('star count hides if GitHub is unreachable', async ({ page }) => {
+    await page.unroute('https://api.github.com/**');
+    await page.route('https://api.github.com/**', (route) => route.abort());
+    await page.reload();
+    await expect(page.locator('.nav .star-btn .stars')).toBeHidden();
+    await expect(page.locator('.nav .star-btn')).toContainText('Star');
+    // The aborted API call logs a "Failed to load resource" error on purpose; don't count it.
+    // @ts-ignore
+    page._problems.length = 0;
   });
 
   test('favicon is the nav logo mark (users-three on a rounded square)', async ({ page, request }) => {
